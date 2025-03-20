@@ -79,11 +79,11 @@ function Weather() {
           `/.netlify/functions/getWeather?lat=${location.lat}&lon=${location.lon}`
         );
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
         const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || data.details || `HTTP error! status: ${response.status}`);
+        }
         
         // Update weather state with relevant information
         setWeather({
@@ -93,8 +93,8 @@ function Weather() {
           description: data.weather[0].description
         });
       } catch (err) {
-        setError('Failed to fetch weather data. Please try again later.');
         console.error('Error fetching weather:', err);
+        setError(err.message || 'Failed to fetch weather data. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -105,22 +105,22 @@ function Weather() {
 
   // Return based on loading, error, or weather data
   if (loading) return (
-    <div className="weather-card">
+    <div className="weather-card" role="region" aria-label="Weather Information">
       <div className="weather-card-content">
         <h3>Weather Information</h3>
         <div className="weather-info">
-          <p>Getting your location and weather data...</p>
+          <p aria-live="polite">Getting your location and weather data...</p>
         </div>
       </div>
     </div>
   );
   
   if (error) return (
-    <div className="weather-card">
+    <div className="weather-card" role="region" aria-label="Weather Information">
       <div className="weather-card-content">
         <h3>Weather Information</h3>
         <div className="weather-info">
-          <p className="error-message">{error}</p>
+          <p className="error-message" role="alert">{error}</p>
           <p className="help-text">Please enable location access or try again later.</p>
         </div>
       </div>
@@ -130,21 +130,27 @@ function Weather() {
   if (!weather) return null;
 
   return (
-    <div className="weather-card">
+    <div className="weather-card" role="region" aria-label="Weather Information">
       <div className="weather-card-content">
         <h3>Weather in {weather.city}</h3>
         <div className="weather-info">
           <div className="weather-detail">
             <span className="weather-label">Temperature:</span>
-            <span className="weather-value">{weather.temperature}°C</span>
+            <span className="weather-value" aria-label={`${weather.temperature} degrees Celsius`}>
+              {weather.temperature}°C
+            </span>
           </div>
           <div className="weather-detail">
             <span className="weather-label">Humidity:</span>
-            <span className="weather-value">{weather.humidity}%</span>
+            <span className="weather-value" aria-label={`${weather.humidity} percent humidity`}>
+              {weather.humidity}%
+            </span>
           </div>
           <div className="weather-detail">
             <span className="weather-label">Conditions:</span>
-            <span className="weather-value">{weather.description}</span>
+            <span className="weather-value" aria-label={`Current conditions: ${weather.description}`}>
+              {weather.description}
+            </span>
           </div>
         </div>
       </div>
@@ -152,4 +158,4 @@ function Weather() {
   );
 }
 
-export default Weather; 
+export default Weather;

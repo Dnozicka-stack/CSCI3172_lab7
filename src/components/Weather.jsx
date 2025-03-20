@@ -16,6 +16,13 @@ function Weather() {
    */
   useEffect(() => {
     const getLocation = () => {
+      // Check if we're in a secure context (HTTPS)
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        setError('Weather widget requires a secure connection (HTTPS)');
+        setLoading(false);
+        return;
+      }
+
       if (!navigator.geolocation) {
         setError('Geolocation is not supported by your browser');
         setLoading(false);
@@ -30,9 +37,28 @@ function Weather() {
           });
         },
         (error) => {
-          setError('Unable to retrieve your location');
+          let errorMessage = 'Unable to retrieve your location';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Location access was denied. Please enable location access in your browser settings.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Location request timed out.';
+              break;
+            default:
+              errorMessage = 'An unknown error occurred.';
+          }
+          setError(errorMessage);
           console.error('Geolocation error:', error);
           setLoading(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
         }
       );
     };
@@ -73,7 +99,7 @@ function Weather() {
           description: data.weather[0].description
         });
       } catch (err) {
-        setError('Failed to fetch weather data');
+        setError('Failed to fetch weather data. Please check your API key and try again.');
         console.error('Error fetching weather:', err);
       } finally {
         setLoading(false);

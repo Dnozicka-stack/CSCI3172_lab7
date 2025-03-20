@@ -74,15 +74,9 @@ function Weather() {
       if (!location) return;
 
       try {
-        const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
-        
-        if (!API_KEY) {
-          throw new Error('Weather API key is not configured');
-        }
-        
-        // Make API request to OpenWeatherMap with metric units using coordinates
+        // Use the Netlify function instead of direct API call
         const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lon}&appid=${API_KEY}&units=metric`
+          `/.netlify/functions/getWeather?lat=${location.lat}&lon=${location.lon}`
         );
 
         if (!response.ok) {
@@ -99,7 +93,7 @@ function Weather() {
           description: data.weather[0].description
         });
       } catch (err) {
-        setError('Failed to fetch weather data. Please check your API key and try again.');
+        setError('Failed to fetch weather data. Please try again later.');
         console.error('Error fetching weather:', err);
       } finally {
         setLoading(false);

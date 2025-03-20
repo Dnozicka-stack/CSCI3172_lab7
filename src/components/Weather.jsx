@@ -2,84 +2,30 @@ import { useState, useEffect } from 'react';
 
 /**
  * Weather Component
- * Displays current weather information for the user's location using the OpenWeatherMap API
+ * Displays current weather information for Halifax using the OpenWeatherMap API
  * Shows temperature in Celsius and humidity percentage
  */
 function Weather() {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [location, setLocation] = useState(null);
+
+  // Halifax coordinates
+  const HALIFAX_COORDS = {
+    lat: 44.6488,
+    lon: -63.5752
+  };
 
   /**
-   * useEffect hook to get user's location and fetch weather data
-   */
-  useEffect(() => {
-    const getLocation = () => {
-      // Check if we're in a secure context (HTTPS)
-      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-        setError('Weather widget requires a secure connection (HTTPS)');
-        setLoading(false);
-        return;
-      }
-
-      if (!navigator.geolocation) {
-        setError('Geolocation is not supported by your browser');
-        setLoading(false);
-        return;
-      }
-
-      // Request location with high accuracy
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log('Location obtained:', position.coords);
-          setLocation({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude
-          });
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-          let errorMessage = 'Unable to retrieve your location';
-          switch (error.code) {
-            case error.PERMISSION_DENIED:
-              errorMessage = 'Location access was denied. Please enable location access in your browser settings.';
-              break;
-            case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Location information is unavailable.';
-              break;
-            case error.TIMEOUT:
-              errorMessage = 'Location request timed out.';
-              break;
-            default:
-              errorMessage = 'An unknown error occurred.';
-          }
-          setError(errorMessage);
-          setLoading(false);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000, // Increased timeout to 10 seconds
-          maximumAge: 0
-        }
-      );
-    };
-
-    getLocation();
-  }, []);
-
-  /**
-   * useEffect hook to fetch weather data when location is available
+   * useEffect hook to fetch weather data
    */
   useEffect(() => {
     const fetchWeather = async () => {
-      if (!location) return;
-
       try {
-        console.log('Fetching weather for location:', location);
+        console.log('Fetching weather for Halifax');
         // Use the Netlify function instead of direct API call
         const response = await fetch(
-          `/.netlify/functions/getWeather?lat=${location.lat}&lon=${location.lon}`
+          `/.netlify/functions/getWeather?lat=${HALIFAX_COORDS.lat}&lon=${HALIFAX_COORDS.lon}`
         );
 
         const data = await response.json();
@@ -98,14 +44,14 @@ function Weather() {
         });
       } catch (err) {
         console.error('Error fetching weather:', err);
-        setError(err.message || 'Failed to fetch weather data. Please try again later.');
+        setError('Failed to fetch weather data. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
     fetchWeather();
-  }, [location]);
+  }, []);
 
   // Return based on loading, error, or weather data
   if (loading) return (
@@ -113,7 +59,7 @@ function Weather() {
       <div className="weather-card-content">
         <h3>Weather Information</h3>
         <div className="weather-info">
-          <p aria-live="polite">Getting your location and weather data...</p>
+          <p aria-live="polite">Getting weather data for Halifax...</p>
         </div>
       </div>
     </div>
@@ -125,7 +71,7 @@ function Weather() {
         <h3>Weather Information</h3>
         <div className="weather-info">
           <p className="error-message" role="alert">{error}</p>
-          <p className="help-text">Please enable location access or try again later.</p>
+          <p className="help-text">Please try again later.</p>
         </div>
       </div>
     </div>
@@ -136,7 +82,7 @@ function Weather() {
   return (
     <div className="weather-card" role="region" aria-label="Weather Information">
       <div className="weather-card-content">
-        <h3>Weather in {weather.city}</h3>
+        <h3>Weather in Halifax</h3>
         <div className="weather-info">
           <div className="weather-detail">
             <span className="weather-label">Temperature:</span>

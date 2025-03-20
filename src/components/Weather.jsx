@@ -29,14 +29,17 @@ function Weather() {
         return;
       }
 
+      // Request location with high accuracy
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          console.log('Location obtained:', position.coords);
           setLocation({
             lat: position.coords.latitude,
             lon: position.coords.longitude
           });
         },
         (error) => {
+          console.error('Geolocation error:', error);
           let errorMessage = 'Unable to retrieve your location';
           switch (error.code) {
             case error.PERMISSION_DENIED:
@@ -52,12 +55,11 @@ function Weather() {
               errorMessage = 'An unknown error occurred.';
           }
           setError(errorMessage);
-          console.error('Geolocation error:', error);
           setLoading(false);
         },
         {
           enableHighAccuracy: true,
-          timeout: 5000,
+          timeout: 10000, // Increased timeout to 10 seconds
           maximumAge: 0
         }
       );
@@ -74,12 +76,14 @@ function Weather() {
       if (!location) return;
 
       try {
+        console.log('Fetching weather for location:', location);
         // Use the Netlify function instead of direct API call
         const response = await fetch(
           `/.netlify/functions/getWeather?lat=${location.lat}&lon=${location.lon}`
         );
 
         const data = await response.json();
+        console.log('Weather API response:', data);
 
         if (!response.ok) {
           throw new Error(data.error || data.details || `HTTP error! status: ${response.status}`);
